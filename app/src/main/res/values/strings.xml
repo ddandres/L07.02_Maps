@@ -5,6 +5,7 @@
     <string name="hint_latitude">Introduce the latitude</string>
     <string name="geocoder_not_available">Could not get the address from the location coordinates</string>
     <string name="route_not_available">Could not get the route</string>
+    <string name="invalid_coordinates">Latitude must be within (-90.0, 90.9), and longitude must be within (-180.0, 180.0)</string>
     <string name="info_window_coordinates">(Long %1$f, Lat %2$f)</string>
     <string name="normal_map">Normal map</string>
     <string name="terrain_map">Terrain map</string>
