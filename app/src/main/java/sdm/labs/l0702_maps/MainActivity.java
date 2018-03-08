@@ -7,10 +7,8 @@ package sdm.labs.l0702_maps;
 import android.content.Context;
 import android.graphics.Color;
 import android.location.Address;
-import android.location.Geocoder;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -32,20 +30,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.maps.android.PolyUtil;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
-
-import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Displays the location of the SDM lab as a marker on Google Maps within a SupportMapFragment.
@@ -56,8 +42,6 @@ import javax.net.ssl.HttpsURLConnection;
  */
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
-    // Hold reference to a Geocoder to translate coordinates into human readable addresses
-    Geocoder geocoder;
     // Hold reference to the GoogleMap used to display location information
     GoogleMap map;
     // Hold reference to the route being displayed on the map
@@ -78,18 +62,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         // Keep references to View elements
-        etLongitude = (EditText) findViewById(R.id.etLongitude);
-        etLatitude = (EditText) findViewById(R.id.etLatitude);
-        bAddMarker = (Button) findViewById(R.id.bAddMarker);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        etLongitude = findViewById(R.id.etLongitude);
+        etLatitude = findViewById(R.id.etLatitude);
+        bAddMarker = findViewById(R.id.bAddMarker);
+        progressBar = findViewById(R.id.progressBar);
 
         // Keep a reference to the fragment displaying the map
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         // Wait for the map to be ready before adding any marker or route
         mapFragment.getMapAsync(this);
-
-        // Initialize the Geocoder
-        geocoder = new Geocoder(this);
 
         // Adapter for the custom InfoWindow
         infoWindowAdapter = new MyInfoWindowAdapter();
@@ -113,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             // Check that the Internet connection is available
             if (isConnectionAvailable()) {
                 // Use a Geocoder in a background task
-                (new GeocoderAsyncTask()).execute(lat, lng);
+                (new GeocoderAsyncTask(this)).execute(lat, lng);
             }
         }
         // Notify the user that coordinates are not valid
@@ -235,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Check whether the Internet connection is available
         if (isConnectionAvailable()) {
             // Obtain the route between the SDM lab and this marker using an AsyncTask
-            (new RouteAsyncTask()).execute(marker.getPosition().latitude, marker.getPosition().longitude);
+            (new RouteAsyncTask(this)).execute(marker.getPosition().latitude, marker.getPosition().longitude);
         }
     }
 
@@ -257,9 +238,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             View result = getLayoutInflater().inflate(R.layout.custom_info_window, null);
             // Get a reference to the View objects in charge of displaying
             // the title, snippet and coordinates of the marker
-            TextView tvTitle = (TextView) result.findViewById(R.id.tvTitle);
-            TextView tvSnippet = (TextView) result.findViewById(R.id.tvSnippet);
-            TextView tvCoordinates = (TextView) result.findViewById(R.id.tvCoordinates);
+            TextView tvTitle = result.findViewById(R.id.tvTitle);
+            TextView tvSnippet = result.findViewById(R.id.tvSnippet);
+            TextView tvCoordinates = result.findViewById(R.id.tvCoordinates);
             // Set the name of the place as title
             tvTitle.setText(marker.getTitle());
             // Set the address as description
@@ -275,168 +256,66 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    /**
-     * Custom asynchronous task to translate received coordinates into a human readable address.
-     */
-    private class GeocoderAsyncTask extends AsyncTask<Double, Void, Address> {
 
-        double latitude;
-        double longitude;
+    public void displayProgressBar() {
+        progressBar.setVisibility(View.VISIBLE);
+    }
 
-        /**
-         * Translates coordinates into address in a background thread.
-         */
-        @Override
-        protected Address doInBackground(Double... params) {
-            try {
-                // Gets the longitude and latitude to be translated into a human readable address
-                latitude = params[0];
-                longitude = params[1];
+    public void displayRoute(List<LatLng> result) {
+        // Check that the route was successfully obtained
+        if (result != null) {
 
-                // Gets a maximum of 1 address from the Geocoder
-                List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-                // Check that the Geocoder has obtained at least 1 address
-                if ((addresses != null) && (addresses.size() > 0)) {
-                    return addresses.get(0);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            // Remove any route previously displayed on the map
+            if (route != null) {
+                route.remove();
             }
-            return null;
+            // Draw a red line in the map using the List of coordinates received
+            route = map.addPolyline(new PolylineOptions()
+                    .addAll(result)
+                    .color(Color.parseColor("red"))
+                    .width(12)
+                    .geodesic(true));
+        }
+        // If no route was obtained then show a message saying so
+        else {
+            Toast.makeText(MainActivity.this, R.string.route_not_available, Toast.LENGTH_SHORT).show();
         }
 
-        /**
-         * Updates the interface of activity that launched the asynchronous task.
-         */
-        @Override
-        protected void onPostExecute(Address address) {
-            String title;
-            StringBuilder snippet = new StringBuilder();
+        // Hide the progress bar
+        progressBar.setVisibility(View.INVISIBLE);
 
-            // Check that the Geocoder got an address
-            if (address != null) {
-                int addressLines = address.getMaxAddressLineIndex();
-                if (addressLines != -1) {
-                    // First line of the address is the name of the place
-                    title = address.getAddressLine(0);
-                    // The rest of the lines of the address is the description (comma separated lines)
-                    if (addressLines > 1) {
-                        snippet.append(address.getAddressLine(1));
-                        for (int i = 2; i <= addressLines; i++) {
-                            snippet.append(", ").append(address.getAddressLine(i));
-                        }
+    }
+
+    public void displayMarkers(Address address, double latitude, double longitude) {
+        String title;
+        StringBuilder snippet = new StringBuilder();
+
+        // Check that the Geocoder got an address
+        if (address != null) {
+            int addressLines = address.getMaxAddressLineIndex();
+            if (addressLines != -1) {
+                // First line of the address is the name of the place
+                title = address.getAddressLine(0);
+                // The rest of the lines of the address is the description (comma separated lines)
+                if (addressLines > 1) {
+                    snippet.append(address.getAddressLine(1));
+                    for (int i = 2; i <= addressLines; i++) {
+                        snippet.append(", ").append(address.getAddressLine(i));
                     }
-                }
-                // If no address available then show a message saying so
-                else {
-                    title = getResources().getString(R.string.geocoder_not_available);
                 }
             }
             // If no address available then show a message saying so
             else {
                 title = getResources().getString(R.string.geocoder_not_available);
             }
-
-            // Add a red marker with the title, description, and coordinates information
-            addMarker(latitude, longitude, title, snippet.toString(), BitmapDescriptorFactory.HUE_RED);
         }
+        // If no address available then show a message saying so
+        else {
+            title = getResources().getString(R.string.geocoder_not_available);
+        }
+
+        // Add a red marker with the title, description, and coordinates information
+        addMarker(latitude, longitude, title, snippet.toString(), BitmapDescriptorFactory.HUE_RED);
     }
 
-    /**
-     * Custom asynchronous task to display the route between the SDM lab and a marker.
-     */
-    private class RouteAsyncTask extends AsyncTask<Double, Void, List<LatLng>> {
-
-        /**
-         * Updates the interface of activity that launched the asynchronous task to display a progress bar.
-         */
-        @Override
-        protected void onPreExecute() {
-            progressBar.setVisibility(View.VISIBLE);
-        }
-
-        /**
-         * Gets the route between the two markers and creates a matching Polyline.
-         */
-        @Override
-        protected List<LatLng> doInBackground(Double... params) {
-
-            List<LatLng> pointsList = null;
-
-            // URI to ask Google Maps Directions API for the route between the SDM lab and another coordinate.
-            String uri = String.format("https://maps.googleapis.com/maps/api/directions/json?" +
-                    "origin=%1$f,%2$f&destination=39.482463,-0.346415&mode=driving&" +
-                    "key=AIzaSyDRJmG9bE2sLHX0EW5BZJ4C8lvk71r7s0s", params[0], params[1]);
-
-            try {
-                // Launch the related GET request
-                URL url = new URL(uri);
-                HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setDoInput(true);
-
-                // Check that the request has been successful
-                if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
-                    }
-
-                    // Parse the response as a JSON object
-                    JSONObject object = new JSONObject(response.toString());
-                    // Get the array named "routes"
-                    JSONArray routesArray = object.getJSONArray("routes");
-                    // The first object of this array contains an "overview_polyline" object
-                    JSONObject route = routesArray.getJSONObject(0);
-                    JSONObject polyline = route.getJSONObject("overview_polyline");
-                    // This object consists of a string "points" representing the different points
-                    // that should be connected to display this route on the map.
-                    // The PolyUtil package decodes this string into a List of LatLng objects
-                    pointsList = PolyUtil.decode(polyline.getString("points"));
-
-                }
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            // Return the List of LatLng objects constituting the route to be displayed
-            return pointsList;
-        }
-
-        /**
-         * Updates the interface of activity that launched the asynchronous task to display the route.
-         */
-        @Override
-        protected void onPostExecute(List<LatLng> result) {
-
-            // Check that the route was successfully obtained
-            if (result != null) {
-
-                // Remove any route previously displayed on the map
-                if (route != null) {
-                    route.remove();
-                }
-                // Draw a red line in the map using the List of coordinates received
-                route = map.addPolyline(new PolylineOptions()
-                        .addAll(result)
-                        .color(Color.parseColor("red"))
-                        .width(12)
-                        .geodesic(true));
-            }
-            // If no route was obtained then show a message saying so
-            else {
-                Toast.makeText(MainActivity.this, R.string.route_not_available, Toast.LENGTH_SHORT).show();
-            }
-
-            // Hide the progress bar
-            progressBar.setVisibility(View.INVISIBLE);
-        }
-    }
 }
