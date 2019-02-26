@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2017. David de Andrés and Juan Carlos Ruiz, DISCA - UPV, Development of apps for mobile devices.
+ * Copyright (c) 2019. David de Andrés and Juan Carlos Ruiz, DISCA - UPV, Development of apps for mobile devices.
  */
 
-package sdm.labs.l0702_maps;
+package dadm.labs.l0702_maps;
 
 import android.content.Context;
 import android.graphics.Color;

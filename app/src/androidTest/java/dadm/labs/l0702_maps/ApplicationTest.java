@@ -1,4 +1,8 @@
-package sdm.labs.l0702_maps;
+/*
+ * Copyright (c) 2019. David de Andrés and Juan Carlos Ruiz, DISCA - UPV, Development of apps for mobile devices.
+ */
+
+package dadm.labs.l0702_maps;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

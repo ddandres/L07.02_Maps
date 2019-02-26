@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018. David de Andrés and Juan Carlos Ruiz, DISCA - UPV, Development of apps for mobile devices.
+ * Copyright (c) 2019. David de Andrés and Juan Carlos Ruiz, DISCA - UPV, Development of apps for mobile devices.
  */
 
-package sdm.labs.l0702_maps;
+package dadm.labs.l0702_maps;
 
 import android.os.AsyncTask;
 
@@ -53,7 +53,7 @@ public class RouteAsyncTask extends AsyncTask<Double, Void, List<LatLng>> {
         // URI to ask Google Maps Directions API for the route between the SDM lab and another coordinate.
         String uri = String.format(Locale.ENGLISH, "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=%1$f,%2$f&destination=39.482463,-0.346415&mode=DRIVING&" +
-                "key=AIzaSyBaxlDD_Dbp5667rOE8-8SafvsjgdsJY_4", params[0], params[1]);
+                "key=MY_API_KEY", params[0], params[1]);
 
         try {
             // Launch the related GET request
