@@ -10,7 +10,7 @@ import android.location.Address;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -37,7 +37,7 @@ import java.util.List;
  * Displays the location of the SDM lab as a marker on Google Maps within a SupportMapFragment.
  * New markers can be added through their longitudes and latitudes.
  * Human readable addresses are obtained and displayed in a custom InfoWindow when markers are clicked.
- * If the InfoWindow is clicked, then the route from SDM lab to that location is obtained through
+ * If the InfoWindow is clicked, then the route from DADM lab to that location is obtained through
  * the Goggle Maps Directions API, and it is displayed on the map using the Maps Util library.
  */
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
@@ -196,8 +196,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         map.setOnInfoWindowClickListener(this);
 
         // Add a green marker on the location of the SDM lab, including related information
-        addMarker(39.482463, -0.346415, getResources().getString(R.string.lab_sdm_title),
-                getResources().getString(R.string.lab_sdm_snippet), BitmapDescriptorFactory.HUE_GREEN);
+        addMarker(39.482463, -0.346415, getResources().getString(R.string.lab_dadm_title),
+                getResources().getString(R.string.lab_dadm_snippet), BitmapDescriptorFactory.HUE_GREEN);
 
         // Display options in the Actionbar
         supportInvalidateOptionsMenu();

@@ -10,7 +10,7 @@
     <string name="normal_map">Normal map</string>
     <string name="terrain_map">Terrain map</string>
     <string name="satellite_map">Satellite map</string>
-    <string name="lab_sdm_title">SDM Lab</string>
-    <string name="lab_sdm_snippet">Universitat Politècnica de València, Campus de Vera S/N, 46022, Valencia, Spain</string>
+    <string name="lab_dadm_title">DADM Lab</string>
+    <string name="lab_dadm_snippet">Universitat Politècnica de València, Campus de Vera S/N, 46022, Valencia, Spain</string>
 
 </resources>

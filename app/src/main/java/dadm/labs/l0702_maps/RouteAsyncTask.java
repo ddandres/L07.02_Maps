@@ -50,7 +50,8 @@ public class RouteAsyncTask extends AsyncTask<Double, Void, List<LatLng>> {
 
         List<LatLng> pointsList = null;
 
-        // URI to ask Google Maps Directions API for the route between the SDM lab and another coordinate.
+        // URI to ask Google Maps Directions API for the route between the DADM lab and another coordinate.
+        // It requires a billing account
         String uri = String.format(Locale.ENGLISH, "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=%1$f,%2$f&destination=39.482463,-0.346415&mode=DRIVING&" +
                 "key=MY_API_KEY", params[0], params[1]);
