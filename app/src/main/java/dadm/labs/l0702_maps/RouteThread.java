@@ -1,10 +1,8 @@
 /*
- * Copyright (c) 2019. David de Andrés and Juan Carlos Ruiz, DISCA - UPV, Development of apps for mobile devices.
+ * Copyright (c) 2020. David de Andrés and Juan Carlos Ruiz, DISCA - UPV, Development of apps for mobile devices.
  */
 
 package dadm.labs.l0702_maps;
-
-import android.os.AsyncTask;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.PolyUtil;
@@ -24,37 +22,33 @@ import java.util.Locale;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class RouteAsyncTask extends AsyncTask<Double, Void, List<LatLng>> {
+public class RouteThread extends Thread {
 
-    private WeakReference<MainActivity> activity;
+    final private WeakReference<MainActivity> activity;
 
-    RouteAsyncTask(MainActivity activity) {
+    final double latitude;
+    final double longitude;
+
+    RouteThread(MainActivity activity, double latitude, double longitude) {
         this.activity = new WeakReference<>(activity);
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
-    /**
-     * Updates the interface of activity that launched the asynchronous task to display a progress bar.
-     */
     @Override
-    protected void onPreExecute() {
+    public void run() {
+        // Updates the interface of activity that launched the asynchronous task to display a progress bar.
         if (activity.get() != null) {
-            activity.get().displayProgressBar();
+            activity.get().runOnUiThread(() -> activity.get().displayProgressBar());
         }
-    }
 
-    /**
-     * Gets the route between the two markers and creates a matching Polyline.
-     */
-    @Override
-    protected List<LatLng> doInBackground(Double... params) {
-
-        List<LatLng> pointsList = null;
+        // Gets the route between the two markers and creates a matching Polyline
 
         // URI to ask Google Maps Directions API for the route between the DADM lab and another coordinate.
         // It requires a billing account
         String uri = String.format(Locale.ENGLISH, "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=%1$f,%2$f&destination=39.482463,-0.346415&mode=DRIVING&" +
-                "key=MY_API_KEY", params[0], params[1]);
+                "key=PLACE_HERE_YOUR_API_KEY", latitude, longitude);
 
         try {
             // Launch the related GET request
@@ -82,8 +76,12 @@ public class RouteAsyncTask extends AsyncTask<Double, Void, List<LatLng>> {
                 // This object consists of a string "points" representing the different points
                 // that should be connected to display this route on the map.
                 // The PolyUtil package decodes this string into a List of LatLng objects
-                pointsList = PolyUtil.decode(polyline.getString("points"));
+                final List<LatLng> pointsList = PolyUtil.decode(polyline.getString("points"));
 
+                // Return the List of LatLng objects constituting the route to be displayed
+                if (activity.get() != null) {
+                    this.activity.get().runOnUiThread(() -> activity.get().displayRoute(pointsList));
+                }
             }
 
         } catch (MalformedURLException e) {
@@ -93,16 +91,5 @@ public class RouteAsyncTask extends AsyncTask<Double, Void, List<LatLng>> {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        // Return the List of LatLng objects constituting the route to be displayed
-        return pointsList;
     }
-
-    @Override
-    protected void onPostExecute(List<LatLng> result) {
-        if (activity.get() != null) {
-            activity.get().displayRoute(result);
-        }
-    }
-
 }

@@ -10,7 +10,6 @@ import android.location.Address;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +18,8 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -84,17 +85,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      */
     public void translateCoordinates(View view) {
 
-        Double lat, lng;
+        double lat, lng;
 
-        lat = Double.valueOf(etLatitude.getText().toString());
-        lng = Double.valueOf(etLongitude.getText().toString());
+        lat = Double.parseDouble(etLatitude.getText().toString());
+        lng = Double.parseDouble(etLongitude.getText().toString());
 
         // Check that the coordinates are valid
         if ((lat >= -90.0f) && (lat <= 90.0f) && (lng >= -180.0f) && (lng <= 180.0f)) {
             // Check that the Internet connection is available
             if (isConnectionAvailable()) {
                 // Use a Geocoder in a background task
-                (new GeocoderAsyncTask(this)).execute(lat, lng);
+                new GeocoderThread(this, lat, lng).start();
             }
         }
         // Notify the user that coordinates are not valid
@@ -142,22 +143,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
 
         // Determine the action to take place according to the Id of the action selected
-        switch (item.getItemId()) {
-
+        final int selectedItem = item.getItemId();
+        if (selectedItem == R.id.mNormalMap) {
             // Display the GoogleMap using in the regular mode
-            case R.id.mNormalMap:
-                map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                break;
-
+            map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        } else if (selectedItem == R.id.mTerrainMap) {
             // Display the GoogleMap using in terrain mode
-            case R.id.mTerrainMap:
-                map.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-                break;
-
+            map.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+        } else if (selectedItem == R.id.mSatelliteMap) {
             // Display the GoogleMap using in satellite mode
-            case R.id.mSatelliteMap:
-                map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-                break;
+            map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         }
         return true;
     }
@@ -216,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Check whether the Internet connection is available
         if (isConnectionAvailable()) {
             // Obtain the route between the SDM lab and this marker using an AsyncTask
-            (new RouteAsyncTask(this)).execute(marker.getPosition().latitude, marker.getPosition().longitude);
+            new RouteThread(this, marker.getPosition().latitude, marker.getPosition().longitude).start();
         }
     }
 
@@ -235,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         public View getInfoContents(Marker marker) {
 
             // Inflate a View from the XML file representing the contents of the InfoWindow
-            View result = getLayoutInflater().inflate(R.layout.custom_info_window, null);
+            View result = getLayoutInflater().inflate(R.layout.custom_info_window, null, false);
             // Get a reference to the View objects in charge of displaying
             // the title, snippet and coordinates of the marker
             TextView tvTitle = result.findViewById(R.id.tvTitle);
