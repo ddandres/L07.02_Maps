@@ -8,5 +8,5 @@ New markers can be added through their longitudes and latitudes.
 Human readable addresses are obtained and displayed in a custom InfoWindow when markers are clicked.
 
 If the InfoWindow is clicked, then the route from DADM lab to that location is obtained through the Google Maps Directions API, and it is displayed on the map using the Maps Util library.
-Google Maps Directions API requires a billing account, although you can try it once a day freely.
+Google Maps Directions API requires a billing account.
 You must get your API_KEY and include it within the URI created in RouteAsyncTask.java.
