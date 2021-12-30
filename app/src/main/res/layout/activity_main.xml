@@ -49,7 +49,6 @@
             android:id="@+id/bAddMarker"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:onClick="translateCoordinates"
             android:text="@string/add_marker"
             android:visibility="invisible" />
 
@@ -61,10 +60,11 @@
         android:layout_weight="1">
 
         <fragment
-            android:id="@+id/map"
+            android:id="@+id/fcvMap"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            map:uiRotateGestures="true"
             map:uiZoomControls="true" />
 
         <ProgressBar
